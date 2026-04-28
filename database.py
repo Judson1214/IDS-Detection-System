@@ -15,21 +15,26 @@ from supabase import create_client, Client
 # ── Bootstrap ──────────────────────────────────────────────────
 load_dotenv()  # reads .env from project root
 
-SUPABASE_URL: str = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY: str = os.environ.get("SUPABASE_KEY", "")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise RuntimeError(
-        "Supabase credentials missing. "
-        "Set SUPABASE_URL and SUPABASE_KEY in your .env file."
-    )
-
-_client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
+_client = None
 
 def _db() -> Client:
-    """Return the shared Supabase client."""
+    """Return the shared Supabase client (lazy-loaded)."""
+    global _client
+    if _client is not None:
+        return _client
+        
+    SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+    SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise RuntimeError(
+            "Supabase credentials missing. "
+            "In production (Vercel), add SUPABASE_URL and SUPABASE_KEY to your Environment Variables."
+        )
+
+    _client = create_client(SUPABASE_URL, SUPABASE_KEY)
     return _client
+
 
 
 # ── Compatibility stub ─────────────────────────────────────────
