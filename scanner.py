@@ -9,8 +9,15 @@ from database import insert_alert, insert_scan_log
 # Log file writer
 # ---------------------------------------------------------------------------
 
-LOGS_DIR = r"C:\Users\HP\Documents\IDS report"
-os.makedirs(LOGS_DIR, exist_ok=True)
+if os.environ.get('VERCEL') == '1':
+    LOGS_DIR = '/tmp'
+else:
+    LOGS_DIR = r"C:\Users\HP\Documents\IDS report"
+
+try:
+    os.makedirs(LOGS_DIR, exist_ok=True)
+except Exception:
+    pass
 
 
 def write_log_file(scan_type: str, target: str, resolved_ip: str | None,
