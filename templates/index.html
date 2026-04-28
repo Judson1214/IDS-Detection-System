@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SnortIDS – Intrusion Detection System</title>
+    <meta name="description"
+        content="Professional Intrusion Detection System dashboard powered by Snort rules for scanning IP addresses and websites." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+
+<body>
+
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">
+                <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2L4 7V14C4 19.5 8.5 24.7 14 26C19.5 24.7 24 19.5 24 14V7L14 2Z" stroke="currentColor"
+                        stroke-width="2" fill="none" />
+                    <path d="M10 14L12.5 16.5L18 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </div>
+            <div>
+                <div class="sidebar-logo-name">SnortIDS</div>
+                <div class="sidebar-logo-sub">Intrusion Detection</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-label">Overview</div>
+            <a class="sidebar-link active" href="#" onclick="showSection('dashboard',this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                Dashboard
+            </a>
+            <a class="sidebar-link" href="#" onclick="showSection('scanner',this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                </svg>
+                Target Scanner
+            </a>
+            <a class="sidebar-link" href="#" onclick="showSection('alerts',this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                Alert Feed
+                <span class="sidebar-badge" id="sidebarAlertBadge">0</span>
+            </a>
+            <div class="sidebar-nav-label">Records</div>
+            <a class="sidebar-link" href="#" onclick="showSection('history',this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg>
+                Scan History
+            </a>
+            <a class="sidebar-link" href="#" onclick="showSection('logfiles',this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Log Files
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="engine-status">
+                <span class="pulse-dot"></span>
+                <span>IDS Engine Running</span>
+            </div>
+            <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle light / dark mode">
+                <span class="theme-icon theme-icon-dark">
+                    <!-- Moon (dark mode active) -->
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                    Dark
+                </span>
+                <span class="theme-icon theme-icon-light" style="display:none">
+                    <!-- Sun (light mode active) -->
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    Light
+                </span>
+            </button>
+            <div class="sidebar-time" id="sidebarTime">--:--:--</div>
+        </div>
+    </aside>
+
+    <!-- ── Main Content ─────────────────────────────────────────────────────── -->
+    <div class="main-content">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                <span class="page-subtitle" id="pageSubtitle">Security overview and real-time threat monitoring</span>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-stat">
+                    <span class="topbar-stat-val" id="statTotalScans">0</span>
+                    <span class="topbar-stat-label">Scans</span>
+                </div>
+                <div class="topbar-divider"></div>
+                <div class="topbar-stat">
+                    <span class="topbar-stat-val" id="statTotalAlerts">0</span>
+                    <span class="topbar-stat-label">Alerts</span>
+                </div>
+                <div class="topbar-divider"></div>
+                <div class="topbar-stat critical">
+                    <span class="topbar-stat-val" id="statCriticalAlerts">0</span>
+                    <span class="topbar-stat-label">Critical</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── DASHBOARD SECTION ──────────────────────────────────────────────── -->
+        <section class="section active" id="section-dashboard">
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <div class="kpi-icon kpi-blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="dashTotalScans">0</div>
+                        <div class="kpi-label">Total Scans</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon kpi-amber">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="dashTotalAlerts">0</div>
+                        <div class="kpi-label">Total Alerts</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon kpi-red">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value kpi-red-text" id="dashCritical">0</div>
+                        <div class="kpi-label">Critical Threats</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon kpi-green">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value kpi-green-text" id="dashLogFiles">0</div>
+                        <div class="kpi-label">Saved Log Files</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick scan on dashboard -->
+            <div class="dash-row">
+                <div class="card flex-1">
+                    <div class="card-header">
+                        <h2 class="card-title">Quick Scan</h2>
+                        <p class="card-desc">Run an immediate scan against a target</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="field-row">
+                            <div class="field" style="flex:1">
+                                <label class="field-label">Scan Type</label>
+                                <div class="seg-control">
+                                    <button class="seg-btn active" id="dashBtnIP" onclick="setMode('ip','dash')">IP
+                                        Address</button>
+                                    <button class="seg-btn" id="dashBtnWeb" onclick="setMode('website','dash')">Website
+                                        / Domain</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field-label" id="dashInputLabel">Target IP Address</label>
+                            <input type="text" id="dashTargetInput" class="text-input" placeholder="192.168.1.1"
+                                autocomplete="off" spellcheck="false" />
+                        </div>
+                        <button class="btn-primary full-width" id="dashScanBtn" onclick="startScan('dash')">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.35-4.35" />
+                            </svg>
+                            Run Scan
+                        </button>
+                        <div class="scan-result-box" id="dashScanResult" style="display:none"></div>
+
+                    </div>
+                </div>
+
+                <div class="card" style="width:340px">
+                    <div class="card-header">
+                        <h2 class="card-title">Recent Alerts</h2>
+                        <p class="card-desc">Latest IDS detections</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="mini-alerts" id="dashMiniAlerts">
+                            <div class="empty-mini">No alerts recorded yet.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SCANNER SECTION ────────────────────────────────────────────────── -->
+        <section class="section" id="section-scanner">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Target Scanner</h2>
+                    <p class="card-desc">Scan an IP address or website domain using Snort-mapped detection rules</p>
+                </div>
+                <div class="card-body">
+                    <div class="scanner-grid">
+                        <div class="scanner-left">
+                            <div class="field">
+                                <label class="field-label">Scan Type</label>
+                                <div class="seg-control">
+                                    <button class="seg-btn active" id="scanBtnIP" onclick="setMode('ip','scan')">IP
+                                        Address</button>
+                                    <button class="seg-btn" id="scanBtnWeb" onclick="setMode('website','scan')">Website
+                                        / Domain</button>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label" id="scanInputLabel">Target IP Address</label>
+                                <input type="text" id="scanTargetInput" class="text-input" placeholder="192.168.1.1"
+                                    autocomplete="off" spellcheck="false" />
+                                <p class="field-hint" id="scanHint">Enter an IPv4 address to perform a port scan and
+                                    match against Snort rules.</p>
+                            </div>
+                            <div class="check-group">
+                                <label class="checkbox-row">
+                                    <input type="checkbox" id="chkPorts" checked />
+                                    <span class="check-box"></span>
+                                    <span class="check-text">
+                                        <strong>Port Scan</strong>
+                                        <span>Detect open ports and match against Snort rule signatures</span>
+                                    </span>
+                                </label>
+                                <label class="checkbox-row" id="chkHttpRow" style="opacity:0.45;pointer-events:none">
+                                    <input type="checkbox" id="chkHttp" disabled />
+                                    <span class="check-box"></span>
+                                    <span class="check-text">
+                                        <strong>HTTP Header Analysis</strong>
+                                        <span>Inspect security headers — CSP, HSTS, X-Frame-Options and more</span>
+                                    </span>
+                                </label>
+                            </div>
+                            <button class="btn-primary" id="mainScanBtn" onclick="startScan('scan')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path d="m21 21-4.35-4.35" />
+                                </svg>
+                                Run Scan
+                            </button>
+                            <div class="scan-result-box" id="scanScanResult" style="display:none"></div>
+                        </div>
+
+                        <div class="scanner-right">
+                            <div class="info-block">
+                                <div class="info-block-title">Detection Rules</div>
+                                <div class="rule-list">
+                                    <div class="rule-item"><span class="rule-sev critical">CRITICAL</span> FTP, Telnet,
+                                        RDP, SMB, Databases</div>
+                                    <div class="rule-item"><span class="rule-sev high">HIGH</span> SSH, SMTP, HSTS,
+                                        NetBIOS</div>
+                                    <div class="rule-item"><span class="rule-sev medium">MEDIUM</span> DNS, Alt
+                                        HTTP/HTTPS, CSP, XSS Headers</div>
+                                    <div class="rule-item"><span class="rule-sev low">LOW</span> X-Content-Type,
+                                        Connection issues</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ALERTS SECTION ─────────────────────────────────────────────────── -->
+        <section class="section" id="section-alerts">
+            <div class="card">
+                <div class="card-header-row">
+                    <div>
+                        <h2 class="card-title">IDS Alert Feed</h2>
+                        <p class="card-desc">All intrusion alerts generated by Snort rule matching</p>
+                    </div>
+                    <div class="card-actions">
+                        <div class="filter-pills" id="alertFilterPills">
+                            <!-- Dynamically populated by JS (targets) -->
+                        </div>
+                        <button class="btn-danger-sm" onclick="clearAlerts()">Clear All</button>
+                    </div>
+                </div>
+                <div class="alerts-feed" id="alertsList">
+                    <div class="empty-state">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        <p>No alerts recorded. Run a scan to begin detection.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── HISTORY SECTION ─────────────────────────────────────────────────── -->
+        <section class="section" id="section-history">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Scan History</h2>
+                    <p class="card-desc">A record of all scans performed in this session</p>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Target</th>
+                                <th>Type</th>
+                                <th>Alerts</th>
+                                <th>Summary</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsBody">
+                            <tr>
+                                <td colspan="5" class="table-empty">No scan history yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── LOG FILES SECTION ──────────────────────────────────────────────── -->
+        <section class="section" id="section-logfiles">
+            <div class="card">
+                <div class="card-header-row">
+                    <div>
+                        <h2 class="card-title">Saved Log Files</h2>
+                        <p class="card-desc">Each scan generates a structured log file saved to <code
+                                class="inline-code">logs/</code></p>
+                    </div>
+                    <code class="path-badge">c:\Users\HP\Documents\IDS\logs\</code>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40px">#</th>
+                                <th>Filename</th>
+                                <th style="width:100px">Size</th>
+                                <th style="width:120px">Download</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logFilesBody">
+                            <tr>
+                                <td colspan="4" class="table-empty">No log files yet. Run a scan to generate one.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div><!-- /.main-content -->
+
+    <!-- ── Alert Detail Modal ─────────────────────────────────────────────── -->
+    <div class="modal-backdrop" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-head">
+                <h3 class="modal-title" id="modalTitle">Alert Details</h3>
+                <button class="modal-x" onclick="closeModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- ── Scan Progress Overlay ──────────────────────────────────────────── -->
+    <div class="progress-overlay" id="scanOverlay">
+        <div class="progress-content">
+            <div class="spinner-ring"></div>
+            <p class="progress-title">Scanning target</p>
+            <p class="progress-sub" id="scanningTarget">Initializing IDS engine…</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+
+</html>
